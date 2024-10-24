@@ -1,0 +1,120 @@
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04    
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          echo "BASE_IMAGE=$(echo ${{ matrix.os }} | sed s/-/:/)" >> $GITHUB_ENV
+          echo "CACHE_KEY=cache-${{ runner.os }}-$(uname -r)-${{ hashFiles('docker/Dockerfile') }}" >> $GITHUB_ENV
+          echo "DOCKER_CACHE_DIR=.cache/docker" >> $GITHUB_ENV
+
+      # Cache must be per OS and kernel version
+      - name: Set up Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.DOCKER_CACHE_DIR }}
+          key: ${{ env.CACHE_KEY }}
+
+      # TODO: don't use buildx unil the image can be built and used on different OS/kernels, which is currently not the case
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3    
+
+      # - name: Build Docker image
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     file: docker/Dockerfile
+      #     tags: tls-traffic-analyzer:latest
+      #     push: false
+      #     load: true
+      #     build-args: BASE_IMAGE=${{ env.BASE_IMAGE }}
+      #     cache-from: type=local,src=${{ env.DOCKER_CACHE_DIR }}
+      #     cache-to: type=local,dest=${{ env.DOCKER_CACHE_DIR }}
+        
+      - name: Build Docker image
+        run: |
+          if [ -f ${{ env.DOCKER_CACHE_DIR }}/tls-traffic-analyzer.tar ]; then
+            echo "Loading cached image"
+            docker load -i ${{ env.DOCKER_CACHE_DIR }}/tls-traffic-analyzer.tar
+          else
+            echo "No cached image found: building"
+            docker build -t tls-traffic-analyzer:latest --no-cache --build-arg BASE_IMAGE=$(echo ${{ matrix.os }} | sed s/-/:/) -f docker/Dockerfile .
+            mkdir -p ${{ env.DOCKER_CACHE_DIR }}
+            docker save -o ${{ env.DOCKER_CACHE_DIR }}/tls-traffic-analyzer.tar tls-traffic-analyzer:latest
+          fi
+
+      - name: Start container
+        run: |
+          docker run \
+            --privileged \
+            -it --rm -d \
+            -v $(pwd)/dumps:/dumps \
+            --network host \
+            --pid host \
+            tls-traffic-analyzer:latest \
+            -i $(ip -4 route | awk '/default/{print $5}') -o /dumps --chown-traffic-dumps $UID --commands curl --verbose
+
+      - name: Sleep and show logs
+        run: sleep 5 && docker logs $(docker ps -q)
+      
+      - name: Run curl to www.google.com
+        run: curl -v -o /dev/null https://www.google.com
+      
+      - name: Sleep and show logs
+        run: sleep 5 && docker logs $(docker ps -q)
+      
+      - name: Save container logs
+        run: docker logs $(docker ps -q) > dumps/container.log
+
+      - name: List dumps directory
+        run: |
+          ls -lh dumps/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dumps-${{ github.run_id }}
+          path: dumps/
+          retention-days: 5
+
+      - name: Ensure at least one pcap file exists
+        run: |
+          if [ -z "$(find dumps -name '*.pcap' -print -quit)" ]; then
+            echo "No pcap files found"
+            exit 1
+          fi
+
+      - name: Print stats.json
+        run: |
+          cat dumps/stats.json | jq
+
+      - name: Print pcap file
+        run: |
+          for file in dumps/*.pcap; do
+            echo "Dump file: $file"
+            docker exec $(docker ps -q) tshark -r /dumps/$file -V
+          done
+
+      - name: Stop container
+        run: |
+          docker stop $(docker ps -q)
