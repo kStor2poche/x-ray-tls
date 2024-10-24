@@ -12,7 +12,7 @@ import platform
 import shutil
 import subprocess
 import time
-from tempfile import NamedTemporaryFile
+from datetime import datetime
 from typing import Dict, List, Tuple, Union
 
 from src.keyfinder.tshark_keytester import TsharkKeyTester
@@ -323,8 +323,8 @@ class KeyFinder():
 
         return binary_hash
 
-    @staticmethod
     def edit_pcap(
+        self,
         dump_file: str,
         ssl_key_log_file_content: str,
         capture_comment: str) -> None:
@@ -335,8 +335,8 @@ class KeyFinder():
             os.environ.get("CUSTOM_WIRESHARK_BIN_PATH", "/opt/wireshark-custom/bin"),
             "editcap"
         )
-        with NamedTemporaryFile(buffering=0) as keylog: 
-            keylog.write(ssl_key_log_file_content.encode("ascii"))
+        with open(os.path.join(self.dump_directory, os.environ.get("SSLKEYLOG_FILENAME", f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_sslkeylogfile")), "wt") as keylog:
+            _ = keylog.write(ssl_key_log_file_content)
             try:
                 subprocess.run(
                     [
