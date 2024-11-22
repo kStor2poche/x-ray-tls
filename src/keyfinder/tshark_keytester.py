@@ -6,7 +6,6 @@ import logging
 import os
 import subprocess
 from tempfile import NamedTemporaryFile
-from typing import List, Optional, Tuple
 
 LOGGER = logging.getLogger(__name__)
 
@@ -51,8 +50,8 @@ class TsharkKeyTester():
     def find_key(
             self,
             client_random: str,
-            key_candidates_hex: List[str],
-            tls_debug: bool = False) -> Tuple[bool, Optional[int], Optional[str]]:
+            key_candidates_hex: list[str],
+            tls_debug: bool = False) -> dict[str, bool|int|str] | None:
         """
         Find TLS key
         Return None if not found

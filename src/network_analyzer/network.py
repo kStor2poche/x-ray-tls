@@ -45,9 +45,9 @@ class NetworkAnalyzer():
     def __init__(
             self,
             interface: str,
-            tls_sessions: Dict[int, TLSSession],
+            tls_sessions: DictProxy,
             manager: multiprocessing.Manager,
-            dump_directory: Optional[str]):
+            dump_directory: str | None):
         """
         interface: interface to sniff (-i of tshark)
         dump_directory: directory to save pcap files
@@ -65,7 +65,7 @@ class NetworkAnalyzer():
 
         # Key is TCP stream id
         # TODO: cleanup old writers
-        self.pcap_writers: Dict[int, PcapWriter] = {}
+        self.pcap_writers: dict[int, PcapWriter] = {}
 
         # TODO : Ensure packets are not truncated
         self.capture = pyshark.LiveCapture(

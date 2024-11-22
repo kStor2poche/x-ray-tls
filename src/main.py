@@ -10,7 +10,6 @@ import sys
 import time
 from multiprocessing.managers import BaseManager, DictProxy, NamespaceProxy
 from tempfile import TemporaryDirectory
-from typing import Dict
 
 import src.dumper.handshake_detector
 import src.keyfinder.finder
@@ -107,7 +106,7 @@ manager = MyManager()
 manager.register("dict", dict, DictProxy)
 manager.register("TLSSession", TLSSession, TLSSessionProxy)
 manager.start()
-TLS_SESSIONS: Dict[str, TLSSession] = manager.dict()
+TLS_SESSIONS: dict[str, TLSSession] = manager.dict().copy()
 
 
 network_analyzer = src.network_analyzer.network.NetworkAnalyzer(

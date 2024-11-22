@@ -11,7 +11,6 @@ import os
 import re
 import struct
 from tqdm import tqdm
-from typing import Dict, List, Optional, Set, Union
 
 LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ class MemorySnapshot():
         self.post_dump_reset = post_dump_reset
 
         # Store regions
-        self.regions: Dict[str, Dict[str, Union[str, int, Dict[int, bytes]]]] = {}
+        self.regions: dict[str, dict[str, str|int|dict[int, bytes]]] = {}
 
         # Size (in bytes) of the dump
         self.size: int = 0
@@ -80,7 +79,7 @@ class MemorySnapshot():
             fd.write("4")
         LOGGER.debug("Dirty flags have been reset for PID %d (%s)", self.pid, self.event_id)
 
-    def dump(self, mem_regions: Set[str] = DEFAULT_MEM_REGIONS) -> None:
+    def dump(self, mem_regions: set[str] = DEFAULT_MEM_REGIONS) -> None:
         """
         Fill self.regions and self.size
         with respect to self.dump_type
@@ -172,16 +171,16 @@ class MemoryDiffer():
         # key is event name
         # e.g., {sip}{sport}{dip}{dport}_begin
         # value is index in self.snapshots
-        self.events: Dict[str, int] = {}
+        self.events: dict[str, int] = {}
 
         # List of memory snapshots (dump order is preserved)
-        self.snapshots: List[MemorySnapshot] = []
+        self.snapshots: list[MemorySnapshot] = []
 
         # Number of running (aka in-flight) handshakes
         # +1 on HS begin, -1 on HS end
         self.running_hs: int = 0
     
-    def snap(self, event_id: str, first: Optional[bool] = None):
+    def snap(self, event_id: str, first: bool | None = None):
         """
         Do required actions with respect to self.dump_method
 
@@ -250,7 +249,7 @@ class MemoryDiffer():
         if first is not None:
             self.running_hs += 1 if first else -1
 
-    def diff(self, start_event_id: str, stop_event_id: str) -> Dict[str, Dict[str, Union[str, int, bytes]]]:
+    def diff(self, start_event_id: str, stop_event_id: str) -> dict[str, dict[str, str|int|bytes]]:
         """
         We compute the diff between all memory snapshots between start and stop events
 

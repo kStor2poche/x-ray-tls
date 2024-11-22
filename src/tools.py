@@ -9,7 +9,6 @@ import os
 import pathlib
 import time
 from datetime import datetime
-from typing import Dict
 
 import docker
 
@@ -30,7 +29,7 @@ def fix_permissions_traffic_dumps(dump_directory: str, uid: int):
             os.chmod(dump_file, 0o600)
 
 
-def cleanup_old_tls_sessions(tls_sessions: Dict[str, TLSSession]):
+def cleanup_old_tls_sessions(tls_sessions: dict[str, TLSSession]):
     """
     Remove TLS sessions that are older than max_age or without associated PID
     """
@@ -48,7 +47,7 @@ def cleanup_old_tls_sessions(tls_sessions: Dict[str, TLSSession]):
             tls_sessions.pop(key)
 
 
-def shutdown_cleanup(tls_sessions: Dict[str, TLSSession]):
+def shutdown_cleanup(tls_sessions: dict[str, TLSSession]):
     """
     Remove TLS sessions and associated dump files where TLS keys are not found
     """

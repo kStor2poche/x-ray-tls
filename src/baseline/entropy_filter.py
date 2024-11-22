@@ -4,7 +4,6 @@ This module implements the baseline approach
 
 import logging
 import math
-from typing import Dict
 
 from tqdm import tqdm
 
@@ -25,7 +24,7 @@ def entropy(string: str) -> float:
     return -sum([p * math.log(p) / math.log(2.0) for p in prob])
 
 
-def baseline_entropy_filter(snapshot: MemorySnapshot, entropy_threshold: float = 3.6) -> Dict[str, any]:
+def baseline_entropy_filter(snapshot: MemorySnapshot, entropy_threshold: float = 3.6) -> dict[str, any]:
     """
     Return figures about the baseline approach
     """

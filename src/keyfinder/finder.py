@@ -13,7 +13,6 @@ import shutil
 import subprocess
 import time
 from datetime import datetime
-from typing import Dict, List, Tuple, Union
 
 from src.keyfinder.tshark_keytester import TsharkKeyTester
 from src.models import TLSSession
@@ -29,12 +28,12 @@ class KeyFinder():
     """
     Brute force TLS keys from memory dump
     """
-    def __init__(self, tls_sessions: Dict[str, TLSSession], dump_directory: str) -> None:
+    def __init__(self, tls_sessions: dict[str, TLSSession], dump_directory: str) -> None:
         self.tls_sessions = tls_sessions
         self.dump_directory = dump_directory
 
         # Cache for SHA256 hashes of commands (e.g. SHA256 of /usr/bin/curl)
-        self.command_hashes: Dict[str, str] = {}
+        self.command_hashes: dict[str, str] = {}
     
     def close(self) -> None:
         pass
@@ -69,7 +68,7 @@ class KeyFinder():
 
             time.sleep(1)
 
-    def find_key(self, tls_session: TLSSession) -> Union[str, None]:
+    def find_key(self, tls_session: TLSSession) -> str | None:
         """
         Return keys in SSLKEYLOGFILE format (string) or None if not found
         """
@@ -153,7 +152,7 @@ class KeyFinder():
             keytester.close()
 
 
-    def get_key_candidates(self, diff_hex: str, cmd: str, entropy_threshold: float = 3.5) -> List[str]:
+    def get_key_candidates(self, diff_hex: str, cmd: str, entropy_threshold: float = 3.5) -> list[str]:
         """
         Return list of key candidates ordered from most likely to less likely
         """
@@ -172,7 +171,7 @@ class KeyFinder():
             self,
             diff_hex: str,
             tls_session: TLSSession,
-            keytester_results: Dict[str, Union[bool, str, int]],
+            keytester_results: dict[str, bool|str|int],
             key_candidates_length: int) -> None:
         """
         Store stats
@@ -263,7 +262,7 @@ class KeyFinder():
             fd.write(json.dumps(stats) + "\n")
 
     @staticmethod
-    def get_context(diff_hex: str, key: str, context_size: int = 100) -> Tuple[int, str, str]:
+    def get_context(diff_hex: str, key: str, context_size: int = 100) -> tuple[int, str, str]:
         """
         Get pre/post key content
         """
@@ -285,7 +284,7 @@ class KeyFinder():
         return start_key_index, pre_key, post_key
     
     @staticmethod
-    def get_memory_region_path(key_hex: str, tls_session: TLSSession) -> Union[str, None]:
+    def get_memory_region_path(key_hex: str, tls_session: TLSSession) -> str | None:
         """
         Return the path of the region where the key was stored or None if not found
         """
@@ -302,7 +301,7 @@ class KeyFinder():
         prob = [float(string.count(c)) / len(string) for c in dict.fromkeys(list(string))]
         return -sum([p * math.log(p) / math.log(2.0) for p in prob])
 
-    def get_command_sha256(self, command: str) -> Union[str, None]:
+    def get_command_sha256(self, command: str) -> str | None:
         """
         Return the SHA256 hash of the binary of command
         """

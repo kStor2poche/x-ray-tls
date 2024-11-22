@@ -11,7 +11,6 @@ import signal
 import time
 from collections import deque
 from ipaddress import ip_address
-from typing import Dict, Tuple, Union
 
 from src.baseline.entropy_filter import baseline_entropy_filter
 from src.dumper.bpf import QuicEvent, TlsEvent, setup_bpf
@@ -28,9 +27,9 @@ class MemoryDumper():
     def __init__(
             self,
             interface: str,
-            tls_sessions: Dict[str, TLSSession],
+            tls_sessions: dict[str, TLSSession],
             max_workers: int = 5,
-            allowed_commands: Tuple[str] = None) -> None:
+            allowed_commands: tuple[str] | None = None) -> None:
         """
         interface: (str) Interface to listen on
         tls_sessions: (dict) fork-safe dict to store TLS sessions
@@ -52,18 +51,18 @@ class MemoryDumper():
         self.allowed_commands = allowed_commands if allowed_commands != "*" else None
 
         # key is pid, value is a MemoryDiffer
-        self.memdiffers: Dict[int, MemoryDiffer] = self.manager.dict()
+        self.memdiffers: dict[int, MemoryDiffer] = self.manager.dict()
 
         # Keep trace of stopped processes
         # key is pid, value is a counter representing the number of memory dumps ongoing
-        self.stopped_pid: Dict[int, int] = self.manager.dict()
+        self.stopped_pid: dict[int, int] = self.manager.dict()
 
         # Keep trace when process was stopped
         # key is pid, value is a counter returned by time.perf_counter_ns()
-        self.stop_ts: Dict[int, int] = self.manager.dict()
+        self.stop_ts: dict[int, int] = self.manager.dict()
 
         # Per PID lock for memory operations
-        self.locks: Dict[int, self.manager.Lock] = self.manager.dict()
+        self.locks: dict[int, self.manager.Lock] = self.manager.dict()
 
         # Prevent duplicate events
         self.events = deque(maxlen=100)
@@ -106,7 +105,7 @@ class MemoryDumper():
                 os.kill(pid, signal.SIGCONT)
 
 
-    def process_tls_event(self, event_type: str, event: Union[TlsEvent, QuicEvent]) -> None:
+    def process_tls_event(self, event_type: str, event: TlsEvent|QuicEvent) -> None:
         """
         Process BPF event
         """

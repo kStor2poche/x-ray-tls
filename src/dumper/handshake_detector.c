@@ -66,10 +66,12 @@ int trace_ip4_datagram_connect(struct pt_regs *ctx, struct sock *skp, struct soc
     return 0;
   }
 
-  struct inet_sock *inet = inet_sk(skp);
+  //struct inet_sock *inet = inet_sk(skp); // This somehow makes the compilation fail despite the same macro working in read_ipv4_tuple when replacing the dodgy cast with inet_sk()...
+  //u32 saddr = bpf_ntohl(inet->inet_saddr);  // FIXME: equal to 0?
+  //u16 sport = bpf_ntohs(inet->inet_sport);
   u32 daddr = bpf_ntohl(sa_in->sin_addr.s_addr);
-  u32 saddr = bpf_ntohl(inet->inet_saddr);  // FIXME: equal to 0?
-  u16 sport = bpf_ntohs(inet->inet_sport);
+  u32 saddr = bpf_ntohl(skp->__sk_common.skc_rcv_saddr);  // FIXME: equal to 0?
+  u16 sport = skp->sk_num;
   
   struct ipv4_tuple_t tuple = {};
   tuple.saddr = saddr;
