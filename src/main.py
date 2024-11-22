@@ -106,7 +106,7 @@ manager = MyManager()
 manager.register("dict", dict, DictProxy)
 manager.register("TLSSession", TLSSession, TLSSessionProxy)
 manager.start()
-TLS_SESSIONS: dict[str, TLSSession] = manager.dict().copy()
+TLS_SESSIONS: dict[str, TLSSession] = manager.dict()
 
 
 network_analyzer = src.network_analyzer.network.NetworkAnalyzer(

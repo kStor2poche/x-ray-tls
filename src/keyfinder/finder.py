@@ -28,7 +28,7 @@ class KeyFinder():
     """
     Brute force TLS keys from memory dump
     """
-    def __init__(self, tls_sessions: dict[str, TLSSession], dump_directory: str) -> None:
+    def __init__(self, tls_sessions, dump_directory: str) -> None:
         self.tls_sessions = tls_sessions
         self.dump_directory = dump_directory
 
