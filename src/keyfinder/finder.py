@@ -336,6 +336,7 @@ class KeyFinder():
         )
         with open(os.path.join(self.dump_directory, os.environ.get("SSLKEYLOG_FILENAME", f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_sslkeylogfile")), "wt") as keylog:
             _ = keylog.write(ssl_key_log_file_content)
+            keylog.close()
             try:
                 subprocess.run(
                     [
