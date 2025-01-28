@@ -14,7 +14,7 @@ import subprocess
 import time
 from datetime import datetime
 
-from src.keyfinder.tshark_keytester import TsharkKeyTester
+from src.keyfinder.tls_bf_keytester import TlsBfKeyTester
 from src.models import TLSSession
 from tqdm import tqdm
 
@@ -96,7 +96,7 @@ class KeyFinder():
         entropy_filter_duration_ms = (time.time() - start_time) * 1000
         LOGGER.debug("get_key_candidates() took %0.2fs", entropy_filter_duration_ms/1000)
 
-        keytester = TsharkKeyTester(
+        keytester = TlsBfKeyTester(
             tls_session.traffic_dump_filepath,
             tls_version="TLS13" if tls_session.tls_version == "1.3" else "TLS12",
             tls_ports=f"{tls_session.destination_port}"
@@ -246,7 +246,7 @@ class KeyFinder():
                             "start_key_index": start_key_index,
                             "pre_key": pre_key,
                             "post_key": post_key,
-                            "key_position": keytester_results.get("key_position"),
+                            #"key_position": keytester_results.get("key_position"),
                             "master_secret_mem_path": self.get_memory_region_path(master_key, tls_session)
                         },
                     }
@@ -330,10 +330,7 @@ class KeyFinder():
         """
         Insert TLS keys and comment into dump_file
         """
-        editcap_path = os.path.join(
-            os.environ.get("CUSTOM_WIRESHARK_BIN_PATH", "/opt/wireshark-custom/bin"),
-            "editcap"
-        )
+        editcap_path = os.path.join("/usr/bin", "editcap")
         with open(os.path.join(self.dump_directory, os.environ.get("SSLKEYLOG_FILENAME", f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_sslkeylogfile")), "wt") as keylog:
             _ = keylog.write(ssl_key_log_file_content)
             keylog.close()
@@ -345,8 +342,10 @@ class KeyFinder():
                         "--capture-comment", capture_comment,
                         dump_file, f"{dump_file}.new.pcapng"
                     ],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.PIPE,
+                    #stdout=subprocess.DEVNULL,
+                    #stderr=subprocess.PIPE,
+                    capture_output = True, # Python >= 3.7 only
+                    text = True, # Python >= 3.7 only
                     check=True
                 )
                 os.rename(f"{dump_file}.new.pcapng", dump_file)
@@ -356,3 +355,4 @@ class KeyFinder():
                     "Fail to run editcap (%s): %s",
                     process_exception.args, process_exception.stderr
                 )
+
