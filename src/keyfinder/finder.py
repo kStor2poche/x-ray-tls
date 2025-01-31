@@ -14,6 +14,7 @@ import subprocess
 import time
 from datetime import datetime
 
+from multiprocessing.managers import DictProxy
 from src.keyfinder.tls_bf_keytester import TlsBfKeyTester
 from src.models import TLSSession
 from tqdm import tqdm
@@ -28,7 +29,7 @@ class KeyFinder():
     """
     Brute force TLS keys from memory dump
     """
-    def __init__(self, tls_sessions, dump_directory: str) -> None:
+    def __init__(self, tls_sessions: DictProxy[str, TLSSession], dump_directory: str) -> None:
         self.tls_sessions = tls_sessions
         self.dump_directory = dump_directory
 
