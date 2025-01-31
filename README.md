@@ -38,7 +38,7 @@ If using this work, please cite [our paper](https://dl.acm.org/doi/10.1145/36347
 ### Run with Docker
 
 Running TLS traffic analyzer in docker is supported on the following host OS:
-- ubuntu:20.04
+- ubuntu:24.04
 - debian:11 (to come soon)
 - archlinux:latest (to come soon)
 You can use any of the name above in BASE_IMAGE build argument.
@@ -47,7 +47,7 @@ You can use any of the name above in BASE_IMAGE build argument.
 # Build the image with the same base OS as your host OS
 # WARNING: you must recompile the image on host kernel updates
 # Set BASE_IMAGE=... to one of the supported host OS (see above)
-docker build -t tls-traffic-analyzer:latest --no-cache --build-arg BASE_IMAGE=ubuntu:20.04 -f docker/Dockerfile .
+docker build -t tls-traffic-analyzer:latest --no-cache --build-arg BASE_IMAGE=ubuntu:24.04 -f docker/Dockerfile .
 
 # Get interface of default route (or set the interface you want to listen on)
 INTERFACE=$(ip -4 route | awk '/default/{print $5}')
